@@ -1,6 +1,8 @@
-    # Discord Auto Quest
+## Discord Auto Quest
 
 This project is a tool for automating and managing Discord quests through a simple web dashboard. It allows you to handle multiple accounts, monitor activity, and control how the automation runs.
+
+Made with help With AI.
 
 ---
 
