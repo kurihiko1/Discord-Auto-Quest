@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Musashi — Get Token</title>
+{% include '_base_style.html' %}
+<style>
+  main {
+    flex: 1;
+    padding: 32px 24px;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .error-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: 16px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: var(--color-error);
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .token-result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-glass);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  .token-result code {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-text-primary);
+  }
+
+  .user-result {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    border-radius: 20px;
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.1);
+    margin-bottom: 24px;
+  }
+
+  .user-av {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 24px;
+    color: #fff;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+    box-shadow: var(--shadow-glow);
+  }
+
+  .user-info-name {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--color-text-primary);
+  }
+
+  .user-info-id {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon"><img src="https://cdn.discordapp.com/avatars/605021751960666132/532b5e647fe8d88e120515eb95ccbe5e.webp?size=128" alt="logo"></div>
+        <span class="brand-name">Auto Quest By <span class="musashi-red">Musashi</span></span>
+      </div>
+      <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-label="Toggle navigation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <nav class="nav-pill" id="nav-pill">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/logs">Logs</a>
+        <a href="/accountmanager">Accounts</a>
+        <a href="/settings">Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Get Discord Token</span>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="/usercheck">
+          {% if error %}
+          <div class="error-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px; height:20px; flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span>{{ error }}</span>
+          </div>
+          {% endif %}
+
+          {% if token and user %}
+          <div class="user-result">
+            {% if user.avatar and user.id %}
+            <div class="user-av" style="background-image:url('https://cdn.discordapp.com/avatars/{{ user.id }}/{{ user.avatar }}.png?size=128')"></div>
+            {% else %}
+            <div class="user-av">{{ (user.global_name or user.username or '?')[0].upper() }}</div>
+            {% endif %}
+            <div>
+              <div class="user-info-name">{{ user.global_name or user.username or 'Unknown' }}</div>
+              <div class="user-info-id">ID: {{ user.id or '?' }}</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Token</label>
+            <div class="token-result">
+              <code id="tok-display">{{ token[:24] }}••••••••••••••••••••••••</code>
+              <button type="button" class="btn btn-ghost btn-sm" onclick="copyToken('{{ token }}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy
+              </button>
+            </div>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:24px; flex-wrap:wrap;">
+            <a href="/accountmanager" onclick="saveAndGo('{{ token }}', '{{ user.username or '' }}', '{{ user.global_name or user.username or '' }}', '{{ user.id or '' }}', '{{ user.avatar or '' }}')" class="btn btn-primary">Save to Manager</a>
+            <button type="submit" class="btn btn-secondary">Get Another</button>
+          </div>
+          {% else %}
+          <div class="field">
+            <label>Email</label>
+            <input class="input" type="email" name="email" value="{{ email or '' }}" placeholder="your@email.com" required>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input class="input" type="password" name="password" placeholder="Your Discord password" required>
+          </div>
+          {% if needs_mfa %}
+          <div class="field">
+            <label>2FA Code</label>
+            <input class="input" type="text" name="code" placeholder="6-digit code" autofocus>
+          </div>
+          <input type="hidden" name="ticket" value="{{ ticket or '' }}">
+          {% endif %}
+          <button type="submit" class="btn btn-primary w-full" style="margin-top:12px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+            {% if needs_mfa %}Verify & Get Token{% else %}Get Token{% endif %}
+          </button>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-host" class="toast-host"></div>
+{% include '_base_js.html' %}
+<script>
+  function copyToken(t) {
+    navigator.clipboard.writeText(t);
+    window.toast('Token copied to clipboard', 'success');
+  }
+  function saveAndGo(token, username, globalName, id, avatar) {
+    const STORE_KEY = 'lonely_hub_accounts_v1';
+    try {
+      const accounts = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+      if (!accounts.find(a => a.id === id)) {
+        accounts.push({ id, user_id: id, username, global_name: globalName || username, avatar, token });
+        localStorage.setItem(STORE_KEY, JSON.stringify(accounts));
+      }
+    } catch(e) {}
+  }
+</script>
+</body>
+</html>

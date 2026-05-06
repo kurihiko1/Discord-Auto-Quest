@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Musashi — Logs</title>
+{% include '_base_style.html' %}
+<style>
+  main {
+    flex: 1;
+    padding: 32px 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .log-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .log-filter {
+    min-width: 160px;
+    height: 38px;
+    padding: 0 12px;
+  }
+
+  .log-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .log-list {
+    flex: 1;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    border: 1px solid var(--border-glass);
+  }
+
+  .log-line {
+    display: block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: var(--transition-base);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  }
+
+  .log-line:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .log-line.info { color: var(--color-text-primary); }
+  .log-line.warning { color: var(--color-warning); background: rgba(245, 158, 11, 0.05); }
+  .log-line.error { color: var(--color-error); background: rgba(239, 68, 68, 0.05); }
+
+  .log-time {
+    color: var(--color-text-dim);
+    margin-right: 12px;
+    font-size: 11px;
+    opacity: 0.8;
+  }
+
+  .empty-log-state {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--color-text-dim);
+  }
+
+  .empty-log-state svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon"><img src="https://cdn.discordapp.com/avatars/605021751960666132/532b5e647fe8d88e120515eb95ccbe5e.webp?size=128" alt="logo"></div>
+        <span class="brand-name">Auto Quest By <span class="musashi-red">Musashi</span></span>
+      </div>
+      <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-label="Toggle navigation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <nav class="nav-pill" id="nav-pill">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/logs" class="active">Logs</a>
+        <a href="/accountmanager">Accounts</a>
+        <a href="/settings">Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="card log-container">
+      <div class="card-head">
+        <span class="card-title">System Logs</span>
+        <div class="log-controls">
+          <select id="log-level-filter" class="input log-filter">
+            <option value="all">All Levels</option>
+            <option value="info">Info</option>
+            <option value="warning">Warning</option>
+            <option value="error">Error</option>
+          </select>
+          <button class="btn btn-secondary btn-sm" id="refresh-logs-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0118.8-4.5M22 12.5a10 10 0 01-18.8 4.5"></path></svg>
+            Refresh
+          </button>
+          <button class="btn btn-danger btn-sm" id="clear-logs-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"></path></svg>
+            Clear All
+          </button>
+        </div>
+      </div>
+      <div class="card-body" style="flex:1; display:flex; flex-direction:column; min-height:0;">
+        <div class="log-list" id="log-list">
+          <div class="empty-log-state" id="empty-log-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line></svg>
+            <p>No log entries yet.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-host" class="toast-host"></div>
+{% include '_base_js.html' %}
+<script>
+  const logList = document.getElementById("log-list");
+  const logLevelFilter = document.getElementById("log-level-filter");
+  const refreshLogsBtn = document.getElementById("refresh-logs-btn");
+  const clearLogsBtn = document.getElementById("clear-logs-btn");
+  const emptyLogState = document.getElementById("empty-log-state");
+
+  let allLogs = [];
+
+  async function fetchLogs() {
+    try {
+      const response = await fetch("/status");
+      const data = await response.json();
+      allLogs = data.logs.map(log => ({
+        time: new Date(log._t).toLocaleTimeString(),
+        level: log.level,
+        message: log.msg
+      }));
+      renderLogs();
+    } catch (error) {
+      window.toast("Failed to load logs", "error");
+    }
+  }
+
+  function renderLogs() {
+    const filterLevel = logLevelFilter.value;
+    logList.innerHTML = "";
+    let filteredLogs = allLogs;
+
+    if (filterLevel !== "all") {
+      filteredLogs = allLogs.filter(log => log.level.toLowerCase() === filterLevel);
+    }
+
+    if (filteredLogs.length === 0) {
+      logList.appendChild(emptyLogState);
+      emptyLogState.style.display = "block";
+    } else {
+      emptyLogState.style.display = "none";
+      filteredLogs.forEach(log => {
+        const logLine = document.createElement("span");
+        logLine.className = `log-line ${log.level.toLowerCase()}`;
+        logLine.innerHTML = `<span class="log-time">[${log.time}]</span> ${log.message}`;
+        logList.prepend(logLine);
+      });
+    }
+  }
+
+  logLevelFilter.addEventListener("change", renderLogs);
+  refreshLogsBtn.addEventListener("click", fetchLogs);
+
+  clearLogsBtn.addEventListener("click", async () => {
+    if (!confirm("Clear all logs?")) return;
+    try {
+      const response = await fetch("/api/logs/clear", { method: "POST" });
+      const data = await response.json();
+      if (data.ok) {
+        window.toast("Logs cleared", "success");
+        allLogs = [];
+        renderLogs();
+      }
+    } catch (error) {
+      window.toast("Network error", "error");
+    }
+  });
+
+  fetchLogs();
+  setInterval(fetchLogs, 10000);
+</script>
+</body>
+</html>

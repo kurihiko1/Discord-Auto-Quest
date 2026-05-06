@@ -1,0 +1,65 @@
+<script>
+  // Basic toast notification system
+  window.toast = (message, type = 'info', title = null) => {
+    const host = document.getElementById('toast-host');
+    if (!host) return;
+
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast t-${type}`;
+    toastEl.innerHTML = `
+      <div class="toast-icon">
+        ${type === 'success' ? '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-8.93"></path><path d="M22 4L12 14.01l-3-3"></path></svg>' : ''}
+        ${type === 'error' ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>' : ''}
+        ${type === 'warning' ? '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>' : ''}
+        ${type === 'info' ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>' : ''}
+      </div>
+      <div class="toast-body">
+        ${title ? `<div class="toast-title">${title}</div>` : ''}
+        <div class="toast-msg">${message}</div>
+      </div>
+      <button class="toast-close" onclick="this.closest('.toast').remove()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    `;
+    host.appendChild(toastEl);
+
+    // Animate in
+    setTimeout(() => toastEl.classList.add('in'), 10);
+
+    // Animate out and remove
+    setTimeout(() => {
+      toastEl.classList.remove('in');
+      toastEl.classList.add('out');
+      toastEl.addEventListener('transitionend', () => toastEl.remove());
+    }, 4000);
+  };
+
+  // Nav toggle for mobile
+  document.addEventListener('DOMContentLoaded', () => {
+    const navToggle = document.getElementById('nav-toggle');
+    const navPill = document.getElementById('nav-pill');
+
+    if (navToggle && navPill) {
+      navToggle.addEventListener('click', () => {
+        navPill.classList.toggle('open');
+        navToggle.setAttribute('aria-expanded', navPill.classList.contains('open'));
+      });
+    }
+  });
+
+  // Ripple effect for buttons
+  document.querySelectorAll('.btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+      const x = e.clientX - e.target.getBoundingClientRect().left;
+      const y = e.clientY - e.target.getBoundingClientRect().top;
+
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      ripple.style.left = `${x}px`;
+      ripple.style.top = `${y}px`;
+      this.appendChild(ripple);
+
+      ripple.addEventListener('animationend', () => ripple.remove());
+    });
+  });
+</script>

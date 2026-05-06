@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Musashi — Dashboard</title>
+{% include '_base_style.html' %}
+<style>
+  main {
+    flex: 1;
+    padding: 32px 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .status-card {
+    background: var(--color-card);
+    backdrop-filter: blur(18px);
+    border: 1px solid var(--border-glass);
+    border-radius: 24px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: var(--transition-base);
+  }
+
+  .status-card:hover {
+    transform: translateY(-4px);
+    background: var(--color-card-hover);
+    border-color: var(--border-glass-strong);
+  }
+
+  .status-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .status-card-title svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--accent-indigo);
+  }
+
+  .status-value {
+    font-family: var(--font-mono);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .status-label {
+    font-size: 13px;
+    color: var(--color-text-dim);
+  }
+
+  .content-area {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 32px;
+    flex: 1;
+  }
+
+  @media (max-width: 1024px) {
+    .content-area {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .account-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+
+  .account-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-glass);
+    cursor: pointer;
+    transition: var(--transition-base);
+  }
+
+  .account-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--border-glass-strong);
+    transform: translateX(4px);
+  }
+
+  .account-item.selected {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--accent-indigo);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+  }
+
+  .account-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 20px;
+    color: #fff;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .account-info .name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .account-info .sub {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+  }
+
+  .account-radio {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border-glass-strong);
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-base);
+  }
+
+  .account-item.selected .account-radio {
+    border-color: var(--accent-indigo);
+    background: var(--accent-indigo);
+  }
+
+  .account-item.selected .account-radio::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fff;
+  }
+
+  .user-display {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 20px;
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.1);
+    margin-bottom: 24px;
+  }
+
+  .user-display-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 24px;
+    color: #fff;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+    box-shadow: var(--shadow-glow);
+  }
+
+  .user-display-info .name {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--color-text-primary);
+  }
+
+  .user-display-info .id {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    margin-top: 4px;
+  }
+
+  .mini-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .mini-stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-glass);
+    border-radius: 16px;
+    padding: 16px;
+  }
+
+  .mini-stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--color-text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .mini-stat-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-top: 8px;
+    font-family: var(--font-mono);
+  }
+
+  pre.console {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-glass);
+    border-radius: 16px;
+    padding: 20px;
+    height: 300px;
+    overflow-y: auto;
+    font-size: 13px;
+    font-family: var(--font-mono);
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    white-space: pre-wrap;
+  }
+
+  .log-line {
+    display: block;
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  }
+
+  .log-time {
+    color: var(--color-text-dim);
+    margin-right: 12px;
+    font-size: 11px;
+  }
+
+  .log-line.info { color: var(--color-text-primary); }
+  .log-line.warning { color: var(--color-warning); }
+  .log-line.error { color: var(--color-error); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon"><img src="https://cdn.discordapp.com/avatars/605021751960666132/532b5e647fe8d88e120515eb95ccbe5e.webp?size=128" alt="logo"></div>
+        <span class="brand-name">Auto Quest By <span class="musashi-red">Musashi</span></span>
+      </div>
+      <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-label="Toggle navigation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <nav class="nav-pill" id="nav-pill">
+        <a href="/dashboard" class="active">Dashboard</a>
+        <a href="/logs">Logs</a>
+        <a href="/accountmanager">Accounts</a>
+        <a href="/settings">Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="status-grid">
+      <div class="status-card">
+        <div class="status-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+          Status
+        </div>
+        <div class="status-value" id="status-value">Idle</div>
+        <div class="status-label" id="status-label">Not running</div>
+      </div>
+
+      <div class="status-card">
+        <div class="status-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 00-3-3.87m-3-1.23a4 4 0 010-7.74"></path></svg>
+          Active Account
+        </div>
+        <div class="status-value" id="active-account-name">None</div>
+        <div class="status-label" id="active-account-id">No account selected</div>
+      </div>
+
+      <div class="status-card">
+        <div class="status-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="10" y2="9"></line></svg>
+          Logs
+        </div>
+        <div class="status-value" id="log-count">0</div>
+        <div class="status-label">Total entries</div>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Choose Account</span>
+          <a href="/accountmanager" class="btn btn-ghost btn-sm">Manage Accounts</a>
+        </div>
+        <div class="card-body">
+          <div class="account-list" id="account-list"></div>
+          <div id="account-empty" class="empty-state" style="display:none; text-align:center; padding:40px 20px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:48px; height:48px; color:var(--color-text-dim); margin-bottom:16px;"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+            <p style="color:var(--color-text-secondary);">No accounts saved yet.</p>
+            <a href="/accountmanager" class="btn btn-primary btn-sm" style="margin-top:16px;">Add Account</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="live-status-section">
+        <div class="card">
+          <div class="card-head">
+            <span class="card-title">Live Status</span>
+            <div id="status-controls">
+              <button class="btn btn-primary btn-sm" id="btn-start" disabled>Start Quest</button>
+              <button class="btn btn-danger btn-sm" id="btn-stop" style="display:none">Stop</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="live-user-box" class="user-display" style="display:none">
+              <div id="live-user-avatar" class="user-display-avatar"></div>
+              <div class="user-display-info">
+                <div id="live-user-name" class="name">Unknown User</div>
+                <div id="live-user-id" class="id">ID: 000000000000000000</div>
+              </div>
+            </div>
+
+            <div class="mini-stats-grid">
+              <div class="mini-stat-card">
+                <div class="mini-stat-label">Current Quest</div>
+                <div class="mini-stat-value" id="mini-quest">-</div>
+              </div>
+              <div class="mini-stat-card">
+                <div class="mini-stat-label">Action</div>
+                <div class="mini-stat-value" id="mini-status">Idle</div>
+              </div>
+            </div>
+
+            <div class="console-output">
+              <div class="console-header">
+                <span class="title">Activity Log</span>
+                <div style="display:flex; gap:8px;">
+                  <button class="btn btn-ghost btn-sm" id="btn-pause-log" title="Pause Log">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                  </button>
+                  <button class="btn btn-ghost btn-sm" id="btn-clear-log" title="Clear Log">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                  </button>
+                </div>
+              </div>
+              <pre class="console" id="console-output"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-host" class="toast-host"></div>
+{% include '_base_js.html' %}
+
+<script>
+  const ACCOUNTS_KEY = 'lonely_hub_accounts_v1';
+  let selectedToken = null;
+  let selectedUser = null;
+  let logPaused = false;
+  let lastLogTime = null;
+
+  function loadAccounts() {
+    try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]'); }
+    catch(e) { return []; }
+  }
+
+  function renderAccounts() {
+    const list = document.getElementById('account-list');
+    const empty = document.getElementById('account-empty');
+    const accounts = loadAccounts();
+    
+    if (accounts.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    
+    empty.style.display = 'none';
+    list.innerHTML = accounts.map(acc => `
+      <div class="account-item ${selectedToken === acc.token ? 'selected' : ''}" onclick="selectAccount('${acc.token}', ${JSON.stringify(acc).replace(/"/g, '&quot;')})">
+        <div class="account-avatar" style="${acc.avatar && acc.user_id ? `background-image:url('https://cdn.discordapp.com/avatars/${acc.user_id}/${acc.avatar}.png?size=128')` : ''}">
+          ${acc.avatar ? '' : (acc.global_name || acc.username || '?')[0].toUpperCase()}
+        </div>
+        <div class="account-info">
+          <div class="name">${acc.global_name || acc.username}</div>
+          <div class="sub">@${acc.username}</div>
+        </div>
+        <div class="account-radio"></div>
+      </div>
+    `).join('');
+  }
+
+  function selectAccount(token, user) {
+    selectedToken = token;
+    selectedUser = user;
+    document.getElementById('btn-start').disabled = false;
+    renderAccounts();
+    window.toast(`Selected account: ${user.global_name || user.username}`, 'info');
+  }
+
+  async function updateStatus() {
+    try {
+      const res = await fetch('/status');
+      const data = await res.json();
+      
+      const statusVal = document.getElementById('status-value');
+      const statusLab = document.getElementById('status-label');
+      const btnStart = document.getElementById('btn-start');
+      const btnStop = document.getElementById('btn-stop');
+      const liveUserBox = document.getElementById('live-user-box');
+      
+      if (data.running) {
+        statusVal.textContent = 'Running';
+        statusVal.style.webkitTextFillColor = 'var(--color-success)';
+        statusLab.textContent = 'Auto questing active';
+        btnStart.style.display = 'none';
+        btnStop.style.display = 'inline-flex';
+        
+        if (data.user) {
+          liveUserBox.style.display = 'flex';
+          document.getElementById('live-user-name').textContent = data.user.global_name || data.user.username;
+          document.getElementById('live-user-id').textContent = `ID: ${data.user.id}`;
+          const av = document.getElementById('live-user-avatar');
+          if (data.user.avatar && data.user.id) {
+            av.style.backgroundImage = `url('https://cdn.discordapp.com/avatars/${data.user.id}/${data.user.avatar}.png?size=128')`;
+            av.textContent = '';
+          } else {
+            av.style.backgroundImage = 'none';
+            av.textContent = (data.user.global_name || data.user.username || '?')[0].toUpperCase();
+          }
+          
+          document.getElementById('active-account-name').textContent = data.user.global_name || data.user.username;
+          document.getElementById('active-account-id').textContent = `@${data.user.username}`;
+        }
+      } else {
+        statusVal.textContent = 'Idle';
+        statusVal.style.webkitTextFillColor = 'transparent';
+        statusLab.textContent = 'Waiting to start';
+        btnStart.style.display = 'inline-flex';
+        btnStop.style.display = 'none';
+        liveUserBox.style.display = 'none';
+        
+        if (!selectedToken) {
+          document.getElementById('active-account-name').textContent = 'None';
+          document.getElementById('active-account-id').textContent = 'No account selected';
+        }
+      }
+
+      document.getElementById('mini-quest').textContent = data.current_quest || '-';
+      document.getElementById('mini-status').textContent = data.current_status || 'Idle';
+      document.getElementById('log-count').textContent = data.logs.length;
+      
+      if (!logPaused) {
+        const consoleOut = document.getElementById('console-output');
+        const isAtBottom = consoleOut.scrollHeight - consoleOut.clientHeight <= consoleOut.scrollTop + 50;
+        
+        consoleOut.innerHTML = data.logs.map(log => {
+          const t = new Date(log._t).toLocaleTimeString();
+          return `<span class="log-line ${log.level}"><span class="log-time">[${t}]</span>${log.msg}</span>`;
+        }).join('');
+        
+        if (isAtBottom) consoleOut.scrollTop = consoleOut.scrollHeight;
+      }
+    } catch(e) {}
+  }
+
+  document.getElementById('btn-start').onclick = async () => {
+    if (!selectedToken) return;
+    const formData = new FormData();
+    formData.append('token', selectedToken);
+    formData.append('username', selectedUser.username);
+    formData.append('user_id', selectedUser.id);
+    formData.append('global_name', selectedUser.global_name);
+    formData.append('avatar', selectedUser.avatar);
+
+    const res = await fetch('/start', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.ok) {
+      window.toast('Auto Quest started!', 'success');
+    } else {
+      window.toast(data.error || 'Failed to start', 'error');
+    }
+  };
+
+  document.getElementById('btn-stop').onclick = async () => {
+    await fetch('/stop', { method: 'POST' });
+    window.toast('Stopping...', 'warning');
+  };
+
+  document.getElementById('btn-clear-log').onclick = async () => {
+    await fetch('/api/logs/clear', { method: 'POST' });
+    document.getElementById('console-output').innerHTML = '';
+  };
+
+  document.getElementById('btn-pause-log').onclick = () => {
+    logPaused = !logPaused;
+    document.getElementById('btn-pause-log').classList.toggle('btn-primary', logPaused);
+    window.toast(logPaused ? 'Logs paused' : 'Logs resumed', 'info');
+  };
+
+  setInterval(updateStatus, 2000);
+  document.addEventListener('DOMContentLoaded', () => {
+    renderAccounts();
+    updateStatus();
+  });
+</script>
+</body>
+</html>

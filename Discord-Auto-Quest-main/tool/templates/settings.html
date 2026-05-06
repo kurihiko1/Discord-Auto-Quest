@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Musashi — Settings</title>
+{% include '_base_style.html' %}
+<style>
+  main {
+    flex: 1;
+    padding: 32px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    border: 1px solid var(--border-glass);
+    transition: var(--transition-base);
+  }
+
+  .setting-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--border-glass-strong);
+  }
+
+  .setting-info { flex: 1; }
+
+  .setting-info-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .setting-info-description {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* Custom SaaS Toggle */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+  }
+
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--border-glass);
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background: #fff;
+    border-radius: 50%;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  input:checked + .slider {
+    background: var(--accent-gradient);
+    border-color: transparent;
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(20px);
+  }
+
+  .action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon"><img src="https://cdn.discordapp.com/avatars/605021751960666132/532b5e647fe8d88e120515eb95ccbe5e.webp?size=128" alt="logo"></div>
+        <span class="brand-name">Auto Quest By <span class="musashi-red">Musashi</span></span>
+      </div>
+      <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-label="Toggle navigation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <nav class="nav-pill" id="nav-pill">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/logs">Logs</a>
+        <a href="/accountmanager">Accounts</a>
+        <a href="/settings" class="active">Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Application Settings</span>
+      </div>
+      <div class="card-body settings-section">
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-info-title">Pause Log Stream</div>
+            <div class="setting-info-description">Stop live log updates on the dashboard.</div>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-switch">
+              <input type="checkbox" id="pause-logs-toggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-info-title">Quest Interval (seconds)</div>
+            <div class="setting-info-description">Delay between actions (Safe: 10-20s).</div>
+          </div>
+          <div class="setting-control">
+            <input type="number" id="quest-interval-input" class="input" value="15" min="5" max="60" style="width: 80px; text-align: center;">
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-info-title">Auto-Claim Rewards</div>
+            <div class="setting-info-description">Automatically claim completed quest rewards.</div>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-switch">
+              <input type="checkbox" id="auto-claim-toggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-info-title">Discord Bot Token</div>
+            <div class="setting-info-description">Configure the bot-mode environment token.</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn btn-secondary btn-sm" id="edit-bot-token-btn">Configure</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Data Management</span>
+      </div>
+      <div class="card-body">
+        <div class="action-buttons">
+          <button class="btn btn-secondary" id="export-accounts-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export Accounts
+          </button>
+          <button class="btn btn-ghost" id="import-accounts-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Import Accounts
+          </button>
+          <button class="btn btn-danger" id="clear-all-data-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
+            Clear All Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-host" class="toast-host"></div>
+{% include '_base_js.html' %}
+<script>
+  const SETTINGS_KEY = 'lonely_hub_settings_v1';
+  const ACCOUNTS_STORE_KEY = 'lonely_hub_accounts_v1';
+
+  function loadSettings() { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch(e) { return {}; } }
+  function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+  function loadAccounts() { try { return JSON.parse(localStorage.getItem(ACCOUNTS_STORE_KEY) || '[]'); } catch(e) { return []; } }
+  function saveAccounts(a) { localStorage.setItem(ACCOUNTS_STORE_KEY, JSON.stringify(a)); }
+
+  const pauseLogsToggle = document.getElementById('pause-logs-toggle');
+  const questIntervalInput = document.getElementById('quest-interval-input');
+  const autoClaimToggle = document.getElementById('auto-claim-toggle');
+  
+  let currentSettings = loadSettings();
+
+  function applySettings() {
+    pauseLogsToggle.checked = currentSettings.pauseLogs || false;
+    questIntervalInput.value = currentSettings.questInterval || 15;
+    autoClaimToggle.checked = currentSettings.autoClaim !== false;
+  }
+
+  function updateSetting(key, value) {
+    currentSettings[key] = value;
+    saveSettings(currentSettings);
+    window.toast(`Setting saved`, 'success');
+  }
+
+  pauseLogsToggle.addEventListener('change', () => updateSetting('pauseLogs', pauseLogsToggle.checked));
+  questIntervalInput.addEventListener('change', () => updateSetting('questInterval', parseInt(questIntervalInput.value)));
+  autoClaimToggle.addEventListener('change', () => updateSetting('autoClaim', autoClaimToggle.checked));
+
+  document.getElementById('export-accounts-btn').onclick = () => {
+    const accounts = loadAccounts();
+    if (accounts.length === 0) return window.toast('No accounts to export', 'warning');
+    const blob = new Blob([JSON.stringify(accounts, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'accounts.json';
+    a.click();
+    window.toast('Exported successfully', 'success');
+  };
+
+  document.getElementById('import-accounts-btn').onclick = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = e => {
+      const reader = new FileReader();
+      reader.onload = event => {
+        try {
+          const imported = JSON.parse(event.target.result);
+          if (Array.isArray(imported)) {
+            saveAccounts(imported);
+            window.toast('Imported successfully', 'success');
+          }
+        } catch(e) { window.toast('Invalid file', 'error'); }
+      };
+      reader.readAsText(e.target.files[0]);
+    };
+    input.click();
+  };
+
+  document.getElementById('clear-all-data-btn').onclick = () => {
+    if (confirm('Clear ALL data? This cannot be undone.')) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', applySettings);
+</script>
+</body>
+</html>
