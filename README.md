@@ -14,7 +14,7 @@ There are two main parts:
 
 ### Web dashboard
 
-https://raw.githubusercontent.com/kurihiko1/Discord-Auto-Quest/main/dashboard.webp
+![image alt](https://raw.githubusercontent.com/kurihiko1/Discord-Auto-Quest/main/dashboard.webp)
 
 The dashboard is where you interact with everything.
 
@@ -90,7 +90,7 @@ You have full control over your data.
 
 * Open the Account Manager
 
-https://raw.githubusercontent.com/kurihiko1/Discord-Auto-Quest/main/accounts.webp
+![image alt](https://raw.githubusercontent.com/kurihiko1/Discord-Auto-Quest/main/accounts.webp)
 
 * Remove individual accounts directly
 
